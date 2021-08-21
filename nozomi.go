@@ -66,6 +66,8 @@ func main() {
 }
 
 func resendMedia(bot *tgbot.BotAPI, message *tgbot.Message) {
+	var err error
+
 	if message.Photo != nil {
 		photoSizes := *message.Photo
 		if len(photoSizes) > 0 {
@@ -73,38 +75,27 @@ func resendMedia(bot *tgbot.BotAPI, message *tgbot.Message) {
 				message.Chat.ID,
 				photoSizes[len(photoSizes)-1].FileID,
 			)
-			_, err := bot.Send(photoMsg)
-			if err == nil {
-				bot.DeleteMessage(
-					tgbot.NewDeleteMessage(message.Chat.ID, message.MessageID),
-				)
-			}
+			_, err = bot.Send(photoMsg)
 		}
 	}
-
 	if message.Video != nil {
 		videoMsg := tgbot.NewVideoShare(
 			message.Chat.ID,
 			message.Video.FileID,
 		)
-		_, err := bot.Send(videoMsg)
-		if err == nil {
-			bot.DeleteMessage(
-				tgbot.NewDeleteMessage(message.Chat.ID, message.MessageID),
-			)
-		}
+		_, err = bot.Send(videoMsg)
 	}
-
 	if message.Animation != nil {
 		gifMsg := tgbot.NewAnimationShare(
 			message.Chat.ID,
 			message.Animation.FileID,
 		)
-		_, err := bot.Send(gifMsg)
-		if err == nil {
-			bot.DeleteMessage(
-				tgbot.NewDeleteMessage(message.Chat.ID, message.MessageID),
-			)
-		}
+		_, err = bot.Send(gifMsg)
+	}
+
+	if err == nil {
+		bot.DeleteMessage(
+			tgbot.NewDeleteMessage(message.Chat.ID, message.MessageID),
+		)
 	}
 }
