@@ -40,9 +40,6 @@ func main() {
 		if update.Message == nil {
 			continue
 		}
-		if update.Message.ForwardFromChat == nil {
-			continue
-		}
 
 		msg := tgbot.NewMessage(update.Message.Chat.ID, "")
 		msg.ParseMode = "html"
@@ -50,6 +47,9 @@ func main() {
 
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {
+			case "resend":
+				resendMedia(bot, update.Message.ReplyToMessage)
+				continue
 			case "start":
 				msg.Text = HELP_MSG
 			case "help":
@@ -58,46 +58,53 @@ func main() {
 			bot.Send(msg)
 		}
 
-		if update.Message.Photo != nil {
-			photoSizes := *update.Message.Photo
-			if len(photoSizes) > 0 {
-				photoMsg := tgbot.NewPhotoShare(
-					update.Message.Chat.ID,
-					photoSizes[len(photoSizes)-1].FileID,
-				)
-				_, err := bot.Send(photoMsg)
-				if err == nil {
-					bot.DeleteMessage(
-						tgbot.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID),
-					)
-				}
-			}
+		if update.Message.ForwardFromChat == nil {
+			continue
 		}
+		resendMedia(bot, update.Message)
+	}
+}
 
-		if update.Message.Video != nil {
-			videoMsg := tgbot.NewVideoShare(
-				update.Message.Chat.ID,
-				update.Message.Video.FileID,
+func resendMedia(bot *tgbot.BotAPI, message *tgbot.Message) {
+	if message.Photo != nil {
+		photoSizes := *message.Photo
+		if len(photoSizes) > 0 {
+			photoMsg := tgbot.NewPhotoShare(
+				message.Chat.ID,
+				photoSizes[len(photoSizes)-1].FileID,
 			)
-			_, err := bot.Send(videoMsg)
+			_, err := bot.Send(photoMsg)
 			if err == nil {
 				bot.DeleteMessage(
-					tgbot.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID),
+					tgbot.NewDeleteMessage(message.Chat.ID, message.MessageID),
 				)
 			}
 		}
+	}
 
-		if update.Message.Animation != nil {
-			gifMsg := tgbot.NewAnimationShare(
-				update.Message.Chat.ID,
-				update.Message.Animation.FileID,
+	if message.Video != nil {
+		videoMsg := tgbot.NewVideoShare(
+			message.Chat.ID,
+			message.Video.FileID,
+		)
+		_, err := bot.Send(videoMsg)
+		if err == nil {
+			bot.DeleteMessage(
+				tgbot.NewDeleteMessage(message.Chat.ID, message.MessageID),
 			)
-			_, err := bot.Send(gifMsg)
-			if err == nil {
-				bot.DeleteMessage(
-					tgbot.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID),
-				)
-			}
+		}
+	}
+
+	if message.Animation != nil {
+		gifMsg := tgbot.NewAnimationShare(
+			message.Chat.ID,
+			message.Animation.FileID,
+		)
+		_, err := bot.Send(gifMsg)
+		if err == nil {
+			bot.DeleteMessage(
+				tgbot.NewDeleteMessage(message.Chat.ID, message.MessageID),
+			)
 		}
 	}
 }
