@@ -77,20 +77,20 @@ func resendMedia(bot *tgbot.BotAPI, message *tgbot.Message) {
 			)
 			_, err = bot.Send(photoMsg)
 		}
-	}
-	if message.Video != nil {
+	} else if message.Video != nil {
 		videoMsg := tgbot.NewVideoShare(
 			message.Chat.ID,
 			message.Video.FileID,
 		)
 		_, err = bot.Send(videoMsg)
-	}
-	if message.Animation != nil {
+	} else if message.Animation != nil {
 		gifMsg := tgbot.NewAnimationShare(
 			message.Chat.ID,
 			message.Animation.FileID,
 		)
 		_, err = bot.Send(gifMsg)
+	} else {
+		return // To avoid deleting all messages
 	}
 
 	if err == nil {
