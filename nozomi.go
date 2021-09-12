@@ -61,7 +61,7 @@ func main() {
 		if update.Message.ForwardFromChat == nil {
 			continue
 		}
-		resendMedia(bot, update.Message)
+		go resendMedia(bot, update.Message)
 	}
 }
 
